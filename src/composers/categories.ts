@@ -9,9 +9,10 @@ import type { MyContext } from '../types/MyContext'
 import i18n from '../lib/i18n';
 import firefly from '../lib/firefly'
 import { TransactionRead } from '../lib/firefly/model/transaction-read'
+import { TRANSACTIONS_PAGE_LIMIT } from './constants'
+import { cleanupSessionData } from './helpers'
 
 export enum Route {
-  IDLE            = 'IDLE',
   ADD_CATEGORIES  = 'CATEGORIES|ADD',
   RENAME_CATEGORY = 'CATEGORIES|RENAME'
 }
@@ -33,6 +34,7 @@ const router = new Router<MyContext>((ctx) => ctx.session.step)
 
 bot.hears(i18n.t('ru', 'labels.CATEGORIES'), listCategoriesCommandHandler)
 bot.hears(i18n.t('en', 'labels.CATEGORIES'), listCategoriesCommandHandler)
+bot.hears(i18n.t('it', 'labels.CATEGORIES'), listCategoriesCommandHandler)
 bot.callbackQuery(CATEGORY_DETAILS, showCategoryDetails)
 bot.callbackQuery(ADD_CATEGORIES, addCategoriesCbQH)
 bot.callbackQuery(RENAME_CATEGORY, typeNewCategoryName)
@@ -161,7 +163,7 @@ function addCategoriesRouteHandler(ctx: MyContext) {
     log('categories: %O', categories)
 
     ctx.session.newCategories = categories
-    ctx.session.step = Route.IDLE
+    ctx.session.step = 'IDLE'
 
     return ctx.reply(ctx.i18n.t('categories.confirmCreation', { categories }), {
       parse_mode: 'Markdown',
@@ -196,8 +198,7 @@ async function cancelCbQH(ctx: MyContext) {
   const log = rootLog.extend('cancelCbQH')
   try {
     log('Cancelling...: ')
-    ctx.session.step = Route.IDLE
-
+    cleanupSessionData(ctx)
     return replyWithListOfCategories(ctx)
   } catch (err) {
     console.error(err)
@@ -207,7 +208,7 @@ async function cancelCbQH(ctx: MyContext) {
 async function closeHandler(ctx: MyContext) {
   const log = rootLog.extend('closeHandler')
   log('ctx.session: %O', ctx.session)
-  ctx.session.step = Route.IDLE
+  cleanupSessionData(ctx)
   await ctx.answerCallbackQuery()
   ctx.session.deleteKeyboardMenuMessage &&
     await ctx.session.deleteKeyboardMenuMessage()
@@ -242,7 +243,8 @@ async function replyWithListOfCategories(ctx: MyContext) {
   log('ctx: %O', ctx)
   try {
     const userSettings = ctx.session.userSettings
-    const categories = (await firefly(userSettings).Categories.listCategory()).data.data
+    // TODO: implement pagination of categories
+    const categories = (await firefly(userSettings).Categories.listCategory(undefined, 500)).data.data
     const categoriesNames = categories.map((c: any) => c.attributes.name)
     // log('categories: %O', categories)
 
@@ -274,7 +276,7 @@ export async function createCategoriesInlineKeyboard(ctx: MyContext): Promise<In
   const log = rootLog.extend('createCategoriesInlineKeyboard')
   try {
     const userSettings = ctx.session.userSettings
-    const categories = (await firefly(userSettings).Categories.listCategory()).data.data
+    const categories = (await firefly(userSettings).Categories.listCategory(undefined, 500)).data.data
     const keyboard = new InlineKeyboard()
     const nowDate = dayjs().format('YYYY-MM-DD')
 
@@ -318,9 +320,9 @@ async function showCategoryDetails(ctx: MyContext) {
 
     const categoryPromise = firefly(userSettings).Categories.getCategory(categoryId)
     const categoryTransactionsPromise = firefly(userSettings).Categories
-      .listTransactionByCategory(categoryId, 1, start, end)
+      .listTransactionByCategory(categoryId, undefined, TRANSACTIONS_PAGE_LIMIT, 1, start, end)
     const expenseCategoriesPromise = firefly(userSettings).Insight
-      .insightExpenseCategory(start, end, [parseInt(categoryId, 10)])
+      .insightExpenseCategory(start, end, undefined, [parseInt(categoryId, 10)])
 
     // Resolve all the promises
     const [ category, categoryTransactions, expenseCategories ] =

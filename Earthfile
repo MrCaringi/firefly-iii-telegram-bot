@@ -14,6 +14,9 @@ build-and-release:
     BUILD --platform=linux/amd64 --platform=linux/arm +buildImage
     BUILD +release
 
+build-and-push:
+    BUILD --platform=linux/amd64 --platform=linux/arm +buildImage
+
 validatePR:
     BUILD +runTests
     BUILD +buildDist
@@ -96,5 +99,4 @@ release:
         --title "$(jq -r .name tmp-release-notes.json)" \
         --notes-file tmp-release-notes.md \
         --verify-tag \
-        --draft \
         "./firefly-iii-telegram-bot.tar.gz#firefly-iii-telegram-bot-dist"

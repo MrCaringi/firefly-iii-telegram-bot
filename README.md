@@ -3,7 +3,27 @@ This Telegram bot facilitates creating [Firefly III](https://www.firefly-iii.org
 as well as provides some capabilities to manage other Firefly's entities like
 Accounts, Categories, Reports, etc.
 
-<h1 align="center"><img src="https://github.com/cyxou/firefly-iii-telegram-bot/blob/master/assets/welcome-screen.png?raw=true" alt="screenshot" align="center"/></h1>
+<h1 align="center"><img src="https://github.com/cyxou/firefly-iii-telegram-bot/blob/master/assets/bot-v2.jpeg?raw=true" alt="screenshot" align="center"/></h1>
+
+## ️⚠ Notice: Limited Firefly III Version Support
+
+This Telegram bot is developed for use with Firefly III finance manager.
+However, due to time constraints, the support for different Firefly III versions
+may be limited.
+
+Please be aware that I may not be able to promptly address issues or developments
+related to all Firefly III versions. Users are encouraged to consider this while
+using the bot with different versions of Firefly III.
+
+For the best experience, it's recommended to use this bot with supported Firefly III versions.
+Your understanding and cooperation are appreciated. 
+
+
+### Version Compatibility
+
+- Version v2 of this bot has been tested with Firefly III v6.0.30.
+- All other versions of Firefly III might not work properly with this bot.
+
 
 ## Setup
 First you'll have to [generate a Telegram Bot token through BotFather](https://core.telegram.org/bots/tutorial#obtain-your-bot-token). Once you generate the token, keep it safe.
@@ -18,10 +38,9 @@ docker run \
   cyxou/firefly-iii-telegram-bot:latest
 ```
 
-You may also provide additional environment variables via the _.env_ file.
-For this rename the _example.env_ to _.env_ and update it with your values.
-Then you can pass it to docker like so:
-
+You may also provide BOT_TOKEN via the .env file. For this just rename the
+_example.env_ file to _.env_ and update it with your values. Then you can pass it
+to docker like so:  
 ```shell
 docker run \
   --rm --it --init --name firefly-bot \
@@ -29,6 +48,10 @@ docker run \
   --env-file .env \
   cyxou/firefly-iii-telegram-bot:latest
 ```
+
+Once the bot is running, navigate to its **Settings** and provide all the
+necessary information to connect it to your Firefly III instance.
+
 
 ### Manual
 
@@ -58,6 +81,7 @@ docker stop earthly-buildkitd || true
 ```
 More info [here](https://docs.earthly.dev/docs/guides/multi-platform).
 
+
 ## TODO
 - [x] Add English translations and make it a default language
 - [x] Add transactions improvements (create transfers and deposits)
@@ -70,10 +94,11 @@ More info [here](https://docs.earthly.dev/docs/guides/multi-platform).
 - [x] Configure CI/CD so that it builds and pushes docker images on merges to master
 - [ ] Reports
 - [ ] Proper error handling
-- [ ] Tests
+- [ ] Firefly API tests
 - [x] Add JSON database for persistance (used @grammyjs/storage-file)
 - [ ] Add date picker when editing transaction (adopt https://github.com/gianlucaparadise/telegraf-calendar-telegram)
-- [ ] Migrate from home grown Mapper to Grammy's Menu plugin
+- [x] Migrate from home grown Mapper to Grammy's Menu plugin (partially done)
+- [ ] Add tags support
 
 ## Open API Code Generation
 
@@ -100,17 +125,15 @@ which is hard-coded in `codegen` npm task.
 
 ## Known bugs and limitations
  - No support for multiple transaction splits. It is assumed that transactions
-     consist of only one transaction split.
+   consist of only one transaction split.
  - Looks like for a brand new user account the built-in "(cash)" account is
    created upon first creation of a transaction via the Firefly UI. Until that
    built-in "(cash)" account is created, the default Expense account will be an
    account without a name which is weird.
+ - Do not try to edit multiple transactions at once, because of the shared state of
+   the transaction under edit. Doing so will result in unexpected behavior.
 
 ## Feedback
-Join the 🔗 [Q&A Telegram group](https://t.me/firefly_iii_telegram_bot_group) if you have
-any questions, feedback or ideas to implement.
+Please join our Telegram group - any feedback is very appreciated!  
 
-## License
-
-[license-url]: https://www.gnu.org/licenses/agpl-3.0.html
-[stars-url]: https://github.com/cyxou/firefly-iii-telegram-bot/stargazers
+[![Telegram Group](https://img.shields.io/badge/Support%20Group-white?logo=telegram)](https://t.me/firefly_iii_telegram_bot_group)
